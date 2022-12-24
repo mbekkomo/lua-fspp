@@ -1,6 +1,7 @@
 #include <iostream>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -9,7 +10,8 @@ namespace fs = std::filesystem;
 
 extern "C"
 const char* FSPP_absolute(const char* path) {
-	return fs::absolute(std::string{path}).string().c_str();
+	std::string* NewPath = new std::string{fs::absolute(path)};
+	return NewPath->c_str();
 }
 
 /*
@@ -32,4 +34,34 @@ std::map<std::string, fs::copy_options> CopyOptions = {
 extern "C" 
 void FSPP_copy(const char* from, const char* to) {
 	fs::copy(from,to);
+}
+
+extern "C"
+int FSPP_copyfile(const char* from, const char* to) {
+	return fs::copy_file(from,to);
+}
+
+extern "C"
+void FSPP_copysymlink(const char* from, const char* to) {
+	fs::copy_symlink(from,to);
+}
+
+extern "C"
+int FSPP_createdirectory(const char* path) {
+	return fs::create_directory(path);
+}
+
+extern "C"
+int FSPP_arg2_createdirectory(const char* path, const char* existing_path) {
+	return fs::create_directory(path,existing_path);
+}
+
+extern "C"
+int FSPP_createdirectories(const char* path) {
+	return fs::create_directories(path);
+}
+
+extern "C"
+void FSPP_createhardlink(const char* target, const char* link) {
+	fs::create_hard_link(target,link);
 }
