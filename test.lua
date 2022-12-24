@@ -6,4 +6,4 @@ void FSPP_copy(const char*, const char*);
 ]]
 local fspp = ffi.load "./libfspp.so"
 
-print(fspp.FSPP_copy("a","src/a"))
+print(ffi.string(fspp.FSPP_absolute("a")))

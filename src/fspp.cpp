@@ -1,6 +1,7 @@
 #include <iostream>
 #include <filesystem>
 #include <map>
+#include <string>
 
 namespace fs = std::filesystem;
 
@@ -8,7 +9,7 @@ namespace fs = std::filesystem;
 
 extern "C"
 const char* FSPP_absolute(const char* path) {
-	return fs::absolute(path).c_str();
+	return fs::absolute(std::string{path}).string().c_str();
 }
 
 /*
