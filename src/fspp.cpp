@@ -3,13 +3,29 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
+
+#define C extern "C"
 
 namespace fs = std::filesystem;
 
+/* Misc */
+
+C int getCCVectorSize(std::vector<const char*>* vec) {
+	return vec->size();
+}
+
+C const char* getCCVectorValue(std::vector<const char*>* vec, int i) {
+	return vec->at(i);
+}
+
+C void freeCCVector(std::vector<const char*>* vec) {
+	delete vec;
+}
+
 /* Non-member functions */
 
-extern "C"
-const char* FSPP_absolute(const char* path) {
+C const char* FSPP_absolute(const char* path) {
 	std::string* NewPath = new std::string{fs::absolute(path)};
 	return NewPath->c_str();
 }
@@ -31,37 +47,42 @@ std::map<std::string, fs::copy_options> CopyOptions = {
 
 */
 
-extern "C" 
-void FSPP_copy(const char* from, const char* to) {
+C void FSPP_copy(const char* from, const char* to) {
 	fs::copy(from,to);
 }
 
-extern "C"
-int FSPP_copyfile(const char* from, const char* to) {
+C int FSPP_copyfile(const char* from, const char* to) {
 	return fs::copy_file(from,to);
 }
 
-extern "C"
-void FSPP_copysymlink(const char* from, const char* to) {
+C void FSPP_copysymlink(const char* from, const char* to) {
 	fs::copy_symlink(from,to);
 }
 
-extern "C"
-int FSPP_createdirectory(const char* path) {
+C int FSPP_createdirectory(const char* path) {
 	return fs::create_directory(path);
 }
 
-extern "C"
-int FSPP_arg2_createdirectory(const char* path, const char* existing_path) {
+C int FSPP_arg2_createdirectory(const char* path, const char* existing_path) {
 	return fs::create_directory(path,existing_path);
 }
 
-extern "C"
-int FSPP_createdirectories(const char* path) {
+C int FSPP_createdirectories(const char* path) {
 	return fs::create_directories(path);
 }
 
-extern "C"
-void FSPP_createhardlink(const char* target, const char* link) {
+C void FSPP_createhardlink(const char* target, const char* link) {
 	fs::create_hard_link(target,link);
+}
+
+C std::vector<const char*>* FSPP_directoryiterator(const char* Cpath) {
+	fs::path path(Cpath);
+
+	std::vector<const char*>* vec = new std::vector<const char*>;
+	for (auto const& entry : fs::directory_iterator{path}) {
+		std::string* content = new std::string{entry.path()};
+		vec->push_back(content->c_str());
+	}
+
+	return vec;
 }
