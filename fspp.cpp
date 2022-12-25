@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <iostream>
 #include <filesystem>
 #include <map>
