@@ -81,16 +81,14 @@ C std::vector<const char*>* FSPP_directoryiterator(const char* Cpath) {
 	fs::path path(Cpath);
 
 	std::vector<const char*>* vec = new std::vector<const char*>;
-	std::string* content = new std::string;
 
-	int i = 0;
 	for (auto const& entry : fs::directory_iterator{path}) {
-		if ( i >= 1 ) delete content;
-		
-		content = new std::string{entry.path()};
-		vec->push_back(content->c_str());
+		std::string entry_string = entry.path().string();
+
+		char* content = new char[entry_string.length() + 1];
+		strcpy(content, entry_string.c_str());
+		vec->push_back((const char*) content);
 	}
-	delete content;
 
 	return vec;
 }
