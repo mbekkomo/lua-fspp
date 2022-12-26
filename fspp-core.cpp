@@ -28,8 +28,11 @@ C void freeCCVector(std::vector<const char*>* vec) {
 /* Non-member functions */
 
 C const char* FSPP_absolute(const char* path) {
-	std::string* NewPath = new std::string{fs::absolute(path)};
-	return NewPath->c_str();
+	std::string abs_path = fs::absolute(path).string();
+
+	char* new_path = new char[abs_path.length() + 1];
+	strcpy(new_path, abs_path.c_str());
+	return (const char*) new_path;
 }
 
 /*
