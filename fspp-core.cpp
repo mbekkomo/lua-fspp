@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cstdarg>
 
 #include <iostream>
 #include <filesystem>
@@ -35,9 +36,7 @@ C const char* FSPP_absolute(const char* path) {
 	return (const char*) new_path;
 }
 
-/*
-
-std::map<std::string, fs::copy_options> CopyOptions = {
+std::map<const char*, fs::copy_options> CopyOptions = {
 	{"none", fs::copy_options::none},
 	{"skip_existing", fs::copy_options::skip_existing},
 	{"overwrite_existing", fs::copy_options::overwrite_existing},
@@ -50,10 +49,19 @@ std::map<std::string, fs::copy_options> CopyOptions = {
 	{"create_hard_links", fs::copy_options::create_hard_links}
 };
 
-*/
+C void FSPP_copy(const char* from, const char* to, int n, ...) {
+	va_list args;
+	fs::copy_options opts;
+	
+	va_start(args, n);
+	
+	for (int i = 0; i < n; i++) {
+		opts |= CopyOptions[va_arg(args, const char*)];
+	}
 
-C void FSPP_copy(const char* from, const char* to) {
-	fs::copy(from,to);
+	va_end(args);
+
+	fs::copy(from,to,opts);
 }
 
 C int FSPP_copyfile(const char* from, const char* to) {
