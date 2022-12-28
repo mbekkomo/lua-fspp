@@ -1,17 +1,54 @@
+--[[
+ _____ ____  ____  ____
+|  ___/ ___||  _ \|  _ \  || C++17 filesystem binding for Lua
+| |_  \___ \| |_) | |_) | || https://github.com/UrNightmaree/filesystempp
+|  _|  ___) |  __/|  __/  ||
+|_|   |____/|_|   |_|     ||
+
+
+Copyright (c) 2022 Koosh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+]]
+
+
 local ffi = require(jit and "ffi" or "cffi")
 
 -- Module --
 local fspp = {}
 
-fspp.extfile = package.cpath:match ";(./%?%.%a+);?":match "%.%a+$"
-print(fspp.extfile)
+fspp.extfile = package.cpath:match "%?%.[^;]+":match "[^?]+"
 
 local fspp_core
 for s in package.cpath:gmatch  "([^;]+)" do
 	s = s:gsub("%?.-$","")
-	fspp_core = assert(ffi.load(s.."fspp-core"..fspp.extfile),
-	"cannot load 'fspp-core"..fspp.extfile"' in package.cpath, shared library not found!")
+
+	if pcall(ffi.load, s.."fspp-core"..fspp.extfile) then
+		fspp_core = ffi.load(s.."fspp-core"..fspp.extfile)
+		break
+	end
 end
+
+if not fspp_core then
+	error("cannot find shared library 'fspp-core"..fspp.extfile.."'!")
+end
+
 
 -- Main Code --
 ffi.cdef[[
@@ -45,9 +82,9 @@ function fspp.directory_iterator(path)
 end
 
 function fspp.copy(from,to,opts)
+	local unpack = unpack or table.unpack
+
 	if not opts or opts and #opts < 1 then
 		fspp_core.FSPP_copy(from, to, 0)
-	else fspp_core.FSPP_copy(from, to, #opts, table.unpack(opts)) end
+	else fspp_core.FSPP_copy(from, to, #opts, unpack(opts)) end
 end
-
-fspp.copy("Makefile","../Makefile")
