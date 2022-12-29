@@ -48,7 +48,7 @@ for s in package.cpath:gmatch  "([^;]+)" do
 end
 
 if not fspp_core then
-	error("cannot find shared library 'fspp-core"..fspp.extfile.."'!")
+	error("cannot find shared library 'fspp-core"..fspp.extfile.."' in package.cpath!")
 end
 
 
