@@ -1,33 +1,34 @@
---[[
- _____ ____  ____  ____
-|  ___/ ___||  _ \|  _ \  || C++17 filesystem binding for Lua
-| |_  \___ \| |_) | |_) | || https://github.com/UrNightmaree/filesystempp
-|  _|  ___) |  __/|  __/  ||
-|_|   |____/|_|   |_|     ||
+--[==[
+	 _____ ____  ____  ____
+	|  ___/ ___||  _ \|  _ \  || C++17 filesystem binding for Lua
+	| |_  \___ \| |_) | |_) | || https://github.com/UrNightmaree/filesystempp
+	|  _|  ___) |  __/|  __/  ||
+	|_|   |____/|_|   |_|     ||
 
 
-MIT License
+	MIT License
 
-Copyright (c) 2022 Koosh
+	Copyright (c) 2022 Koosh
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-]]
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+
+]==]
 
 
 local ffi = require(jit and "ffi" or "cffi")
@@ -64,6 +65,7 @@ const char* FSPP_absolute(const char* path);
 void FSPP_copy(const char* from, const char* to, int n, ...);
 int FSPP_createdirectory(const char*);
 Vector* FSPP_directoryiterator(const char*);
+void FSPP_permissions(const char* path, int opt, int n, ...);
 ]]
 
 function fspp.directory_iterator(path)
@@ -88,5 +90,7 @@ function fspp.copy(from,to,opts)
 
 	if not opts or opts and #opts < 1 then
 		fspp_core.FSPP_copy(from, to, 0)
-	else fspp_core.FSPP_copy(from, to, #opts, unpack(opts)) end
+else fspp_core.FSPP_copy(from, to, #opts, unpack(opts)) end
 end
+
+fspp_core.FSPP_permissions("smth",2,1,0,100,00)
