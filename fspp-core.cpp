@@ -47,6 +47,10 @@ namespace fs = std::filesystem;
 
 typedef std::vector<const char*>* CCVector;
 
+static void print(const char* str) {
+	std::cout << str << '\n';
+}
+
 /* Misc */
 
 C int getCCVectorSize(CCVector vec) {
@@ -61,9 +65,19 @@ C void freeCCVector(CCVector vec) {
 	delete vec;
 }
 
+C void freeFStatus(fs::file_status* fstat) {
+	delete fstat;
+}
+
 /* Simple functions */
 
-/** Maps **/
+C const char* FSPP_absolute(const char* path) {
+	std::string abs_path = fs::absolute(path).string();
+
+	char* c_abs_path = new char[abs_path.length() + 1];
+	strcpy(c_abs_path, abs_path.c_str());
+	return c_abs_path;
+}
 
 std::map<const char*, fs::copy_options> CopyOptions = {
 	{"none", fs::copy_options::none}, 
@@ -77,44 +91,6 @@ std::map<const char*, fs::copy_options> CopyOptions = {
 	{"create_symlinks", fs::copy_options::create_symlinks}, 
 	{"create_hard_links", fs::copy_options::create_hard_links}
 };
-
-std::map<const char*, fs::perm_options> PermissionOption = {
-	{"replace", fs::perm_options::replace},
-	{"add", fs::perm_options::add},
-	fs::perm_options::remove},
-	fs::perm_options::nofollow}
-};
-
-std::vector<fs::perms> Permissions = {
-	fs::perms::none,
-	fs::perms::owner_read,
-	fs::perms::owner_write,
-	fs::perms::owner_exec,
-	fs::perms::owner_all,
-	fs::perms::group_read,
-	fs::perms::group_write,
-	fs::perms::group_exec,
-	fs::perms::group_all,
-	fs::perms::others_read,
-	fs::perms::others_write,
-	fs::perms::others_exec,
-	fs::perms::others_all,
-	fs::perms::all,
-	fs::perms::set_uid,
-	fs::perms::set_gid,
-	fs::perms::sticky_bit,
-	fs::perms::mask
-};
-
-/** Maps End **/
-
-C const char* FSPP_absolute(const char* path) {
-	std::string abs_path = fs::absolute(path).string();
-
-	char* c_abs_path = new char[abs_path.length() + 1];
-	strcpy(c_abs_path, abs_path.c_str());
-	return c_abs_path;
-}
 
 C void FSPP_copy(const char* from, const char* to, int n, ...) {
 	fs::copy_options co;
@@ -206,32 +182,16 @@ C uint64_t FSPP_hardlinkcount(const char* path) {
 	return (uint64_t) fs::hard_link_count(path);
 }
 
-C void FSPP_permissions(const char* path, int opt, int n, ...) {
-	fs::perms perms = fs::perms::none;
-	fs::perm_options perm_opt = PermissionOption.at(opt - 1);
-	std::cout << "debug" << '\n';
-
-	va_list args;
-	va_start(args, n);
-
-	for (int i = 0; i < n; i++) {
-		int perm = (int) va_arg(args, int);
-
-		std::cout << i << ' ' << perm - 1 << '\n';
-		perms |= Permissions.at(perm - 1);
-	}
-
-	va_end(args);
-
-	fs::permissions(path, perms, perm_opt);
-}
-
 C const char* FSPP_readsymlink(const char* path) {
 	std::string orig_path = fs::read_symlink(path).string();
 
 	char* c_orig_path = new char[orig_path.length() + 1];
 	strcpy(c_orig_path, orig_path.c_str());
 	return c_orig_path;
+}
+
+C uint64_t FSPP_removeall(const char* path) {
+	return (uint64_t) fs::remove_all(path);
 }
 
 C CCVector FSPP_directoryiterator(const char* Cpath) {
@@ -250,10 +210,74 @@ C CCVector FSPP_directoryiterator(const char* Cpath) {
 	return vec;
 }
 
-/* For Debugging */
-
-#ifdef _DEBUG
-int main() {
-	FSPP_permissions("smth","add",3,"owner_exec","group_exec","others_exec");
+C int FSPP_isblockfile(const char* path) {
+	return fs::is_block_file(path);
 }
-#endif /* _DEBUG */
+
+C int FSPP_ischaracterfile(const char* path) {
+	return fs::is_character_file(path);
+}
+
+C int FSPP_isdirectory(const char* path) {
+	return fs::is_directory(path);
+}
+
+C int FSPP_isempty(const char* path) {
+	return fs::is_empty(path);
+}
+
+C int FSPP_isfifo(const char* path) {
+	return fs::is_fifo(path);
+}
+
+C int FSPP_isother(const char* path) {
+	return fs::is_other(path);
+}
+
+C int FSPP_isregularfile(const char* path) {
+	return fs::is_regular_file(path);
+}
+
+C int FSPP_issocket(const char* path) {
+	return fs::is_socket(path);
+}
+
+C int FSPP_issymlink(const char* path) {
+	return fs::is_symlink(path);
+}
+
+/* Path Class */
+
+typedef fs::path* Path;
+
+C Path FSPP_Path_create(const char* path) {
+	return new fs::path{path};
+}
+
+C void FSPP_Path_gc(Path path) {
+	delete path;
+}
+
+C const char* FSPP_Path_string(Path path) {
+	std::string path_str = path->string();
+
+	char* path_cstr = new char[path_str.length() + 1];
+	strcpy(path_cstr, path_str.c_str());
+	return path_cstr;
+}
+
+C const char* FSPP_Path_append(Path path, const char* path2) {
+	std::string path_str = path->string();
+
+	delete path;
+	path = new fs::path{fs::path{path_str}.append(path2)};
+	return FSPP_Path_string(path);
+}
+
+C const char* FSPP_Path_concat(Path path, const char* path2) {
+	std::string path_str = path->string();
+
+	delete path;
+	path = new fs::path{fs::path{path_str}.concat(path2)};
+	return FSPP_Path_string(path);
+}

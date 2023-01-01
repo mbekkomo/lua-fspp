@@ -65,7 +65,16 @@ const char* FSPP_absolute(const char* path);
 void FSPP_copy(const char* from, const char* to, int n, ...);
 int FSPP_createdirectory(const char*);
 Vector* FSPP_directoryiterator(const char*);
-void FSPP_permissions(const char* path, int opt, int n, ...);
+void FSPP_permissions(const char*, const char*, const char**);
+uint64_t FSPP_removeall(const char*);
+
+// Path
+typedef struct Path Path;
+
+Path* FSPP_Path_create(const char*);
+void FSPP_Path_gc(Path*);
+const char* FSPP_Path_string(Path*);
+const char* FSPP_Path_appendp(Path*, const char*);
 ]]
 
 function fspp.directory_iterator(path)
@@ -93,4 +102,41 @@ function fspp.copy(from,to,opts)
 else fspp_core.FSPP_copy(from, to, #opts, unpack(opts)) end
 end
 
-fspp_core.FSPP_permissions("smth",2,1,0,100,00)
+local path_api = {
+	_path = {}
+}
+
+function path_api:free()
+	fspp_core.FSPP_Path_gc(self._path)
+end
+
+function path_api:string()
+	return ffi.string(fspp_core.FSPP_Path_string(self._path))
+end
+
+function path_api:append(path, only_return)
+	if not only_return then
+		return ffi.string(fspp_core.FSPP_Path_appendp(self._path, path))
+	end
+end
+
+function fspp.path(path, disable_gc)
+	local path_obj = {}
+
+	for i,v in pairs(path_api) do
+		path_obj[i] = v
+	end
+
+	path_obj._path = fspp_core.FSPP_Path_create(path)
+
+	if not disable_gc then
+		ffi.gc(path_obj._path, fspp_core.FSPP_Path_gc)
+	end
+
+	return path_obj
+end
+
+local test = fspp.path ".."
+
+print(test:append "stanly")
+print(test:string())
